@@ -40,12 +40,3 @@ npm run dev
 ```sh
 npm run build
 ```
-## Wireframes y Mockups
-
-### 1. Panel principal
-
-![Panel principal de la heladería](panel-principal.jpeg)
-
-### 2. Catálogo de productos
-
-![Catálogo de productos de la heladería](catalogo-productos.jpeg)
