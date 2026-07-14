@@ -40,3 +40,42 @@ npm run dev
 ```sh
 npm run build
 ```
+Esto Fue producido por el grupo 404
+
+# Sistema Web para Heladería
+
+## Wireframes y Mockups
+
+### Pantalla 1 - Reportes
+
+![Reportes](mockups/reportes.jpeg)
+
+---
+
+### Pantalla 2 - Ventas
+
+![Ventas](mockups/ventas.jpeg)
+
+---
+
+### Pantalla 3 - Catálogo
+
+![Catálogo](mockups/catalogo.png)
+
+---
+
+### Pantalla 4 - Detalle del Producto
+
+![Producto](mockups/producto.png)
+
+---
+
+### Pantalla 5 - Carrito
+
+![Carrito](mockups/carrito.png)
+
+---
+
+### Pantalla 6 - Mis Pedidos
+
+![Pedidos](mockups/pedidos.png)
