@@ -58,6 +58,8 @@ Esto Fue producido por el grupo 404
 
 ![Producto](mockups/Registro%20de%20Usuario.png)
 
+---
+
 ### Pantalla 3 - Reportes
 
 ![Reportes](mockups/reportes.jpeg)
