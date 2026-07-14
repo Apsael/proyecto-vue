@@ -46,13 +46,13 @@ Esto Fue producido por el grupo 404
 
 ## Wireframes y Mockups
 
-### Pantalla 1 - Inicio de Sesión
+### Pantalla 1 - Reportes
 
 ![Reportes](mockups/reportes.jpeg)
 
 ---
 
-### Pantalla 2 - Inicio
+### Pantalla 2 - Ventas
 
 ![Ventas](mockups/ventas.jpeg)
 
