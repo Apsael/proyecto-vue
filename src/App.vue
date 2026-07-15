@@ -1,10 +1,17 @@
 <script setup lang="ts">
+import EncabezadoApp from './components/EncabezadoApp.vue';
 </script>
 
+
 <template>
-  <main>
-    <h1 class="hello-world">hola mundo</h1>
-  </main>
+  <EncabezadoApp
+    titulo="Mi Aplicación Vue 3"
+    subtitulo="Bienvenido a mi aplicación"
+  />
+<main>
+  <h1 class="hello-world">Hello World</h1>
+  <p>Bienvenido a mi aplicación Vue 3</p>
+</main>
 </template>
 
 <style scoped>
