@@ -46,36 +46,39 @@ Esto Fue producido por el grupo 404
 
 ## Wireframes y Mockups
 
-### Pantalla 1 - Reportes
+---
+
+### Pantalla 1 - Inicio de Sesion
+
+![Catálogo](mockups/Inicio%20de%20Sesion.png)
+
+---
+
+### Pantalla 2 - Registro de Usuario
+
+![Producto](mockups/Registro%20de%20Usuario.png)
+
+---
+
+### Pantalla 3 - Reportes
 
 ![Reportes](mockups/reportes.jpeg)
 
 ---
 
-### Pantalla 2 - Ventas
+### Pantalla 4 - Ventas
 
 ![Ventas](mockups/ventas.jpeg)
 
----
-
-### Pantalla 3 - Catálogo
-
-![Catálogo](mockups/catalogo.png)
 
 ---
 
-### Pantalla 4 - Detalle del Producto
+### Pantalla 5 - Catalogo de productos
 
-![Producto](mockups/producto.png)
-
----
-
-### Pantalla 5 - Carrito
-
-![Carrito](mockups/carrito.png)
+![Carrito](mockups/catalogo-productos.jpeg)
 
 ---
 
-### Pantalla 6 - Mis Pedidos
+### Pantalla 6 - Panel Principal
 
-![Pedidos](mockups/pedidos.png)
+![Pedidos](mockups/panel-principal.jpeg)
