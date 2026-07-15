@@ -8,6 +8,11 @@ defineProps({
   subtitulo: {
     type: String,
     default: ''
+  },
+
+  parrafo: {
+    type: String,
+    default: ''
   }
 })
 </script>
@@ -16,6 +21,7 @@ defineProps({
   <header class="encabezado-app">
     <h1>{{ titulo }}</h1>
     <h2 v-if="subtitulo">{{ subtitulo }}</h2>
+    <p>{{ parrafo }}</p>
   </header>
 </template>
 

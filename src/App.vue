@@ -7,6 +7,7 @@ import EncabezadoApp from './components/EncabezadoApp.vue';
   <EncabezadoApp
     titulo="Mi Aplicación Vue 3"
     subtitulo="Bienvenido a mi aplicación"
+    parrafo="parrafo de Jhoel"
   />
 <main>
   <h1 class="hello-world">Hello World</h1>
