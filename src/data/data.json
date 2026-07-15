@@ -1,0 +1,31 @@
+{
+  "usuarios": [
+    { "id": 1, "nombre": "Administrador", "email": "admin@heladeria.com", "password": "admin123", "rol": "admin" }
+  ],
+  "categorias": [
+    { "id": 1, "nombre": "Helados", "descripcion": "Helados artesanales en cono, pocillo y tubo" },
+    { "id": 2, "nombre": "Paletas", "descripcion": "Paletas de fruta y crema" },
+    { "id": 3, "nombre": "Postres", "descripcion": "Postres helados especiales" },
+    { "id": 4, "nombre": "Bebidas", "descripcion": "Batidos, malteadas y refrescos" },
+    { "id": 5, "nombre": "Acompanamientos", "descripcion": "Conos, toppings y adicionales" }
+  ],
+  "productos": [
+    { "id": 1, "nombre": "Helado de Vainilla", "descripcion": "Helado cremoso de vainilla natural", "precio": 2.50, "stock": 100, "id_categoria": 1, "activo": true },
+    { "id": 2, "nombre": "Helado de Chocolate", "descripcion": "Helado intenso de cacao premium", "precio": 2.50, "stock": 100, "id_categoria": 1, "activo": true },
+    { "id": 3, "nombre": "Helado de Fresa", "descripcion": "Helado de fresa fresca", "precio": 2.50, "stock": 80, "id_categoria": 1, "activo": true },
+    { "id": 4, "nombre": "Helado de Menta", "descripcion": "Helado refrescante de menta con chispas de chocolate", "precio": 3.00, "stock": 60, "id_categoria": 1, "activo": true },
+    { "id": 5, "nombre": "Helado de Mango", "descripcion": "Helado tropical de mango", "precio": 2.75, "stock": 70, "id_categoria": 1, "activo": true },
+    { "id": 6, "nombre": "Paleta de Limon", "descripcion": "Paleta natural de limon", "precio": 1.50, "stock": 120, "id_categoria": 2, "activo": true },
+    { "id": 7, "nombre": "Paleta de Sandia", "descripcion": "Paleta refrescante de sandia", "precio": 1.50, "stock": 90, "id_categoria": 2, "activo": true },
+    { "id": 8, "nombre": "Paleta de Mora", "descripcion": "Paleta de mora artesanal", "precio": 1.75, "stock": 85, "id_categoria": 2, "activo": true },
+    { "id": 9, "nombre": "Sundae de Chocolate", "descripcion": "Sundae con salsa de chocolate y nata", "precio": 4.50, "stock": 50, "id_categoria": 3, "activo": true },
+    { "id": 10, "nombre": "Banana Split", "descripcion": "Banana split clasico con tres sabores", "precio": 5.00, "stock": 40, "id_categoria": 3, "activo": true },
+    { "id": 11, "nombre": "Batido de Fresa", "descripcion": "Batido cremoso de fresa", "precio": 3.50, "stock": 60, "id_categoria": 4, "activo": true },
+    { "id": 12, "nombre": "Malteada de Vainilla", "descripcion": "Malteada de vainilla con crema batida", "precio": 4.00, "stock": 55, "id_categoria": 4, "activo": true },
+    { "id": 13, "nombre": "Cono Clasico", "descripcion": "Cono crujiente para helado", "precio": 0.50, "stock": 200, "id_categoria": 5, "activo": true },
+    { "id": 14, "nombre": "Sprinkles de Colores", "descripcion": "Grageas de colores para decorar", "precio": 0.30, "stock": 300, "id_categoria": 5, "activo": true },
+    { "id": 15, "nombre": "Salsa de Chocolate", "descripcion": "Salsa de chocolate para topping", "precio": 0.75, "stock": 150, "id_categoria": 5, "activo": true }
+  ],
+  "ventas": [],
+  "detalleVenta": []
+}
