@@ -109,7 +109,6 @@ npm run preview
 
 ## Diseno visual
 
-El proyecto replica la estetica del sistema PHP original con:
 
 - Paleta de colores rosa/rose (`#e91e63`, `#f06292`) como primario
 - Gradientes suaves en fondos de login/registro
