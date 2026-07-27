@@ -152,7 +152,6 @@ proyecto-vue/
 - **SQL Server** (base de datos)
 - **JWT Bearer** (autenticacion)
 - **BCrypt.Net** (hashing de contrasenas)
-- **Swashbuckle** (Swagger UI)
 
 ---
 
@@ -246,7 +245,6 @@ dotnet run
 
 El backend estara disponible en:
 - **API**: `http://localhost:5057`
-- **Swagger**: `http://localhost:5057/swagger`
 
 > Al iniciar por primera vez, el seeder creara el usuario admin automaticamente.
 
