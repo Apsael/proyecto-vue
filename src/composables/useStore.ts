@@ -1,193 +1,204 @@
-import { reactive, watch } from 'vue'
-import type { Usuario, Categoria, Producto, Venta, DetalleVenta, MetodoPago, AppData } from '@/types'
-import seedData from '@/data/data.json'
+import { reactive } from 'vue'
+import { api } from '@/services/api'
+import type { ProductoResponse, Categoria, VentaResponse } from '@/services/api'
 
-const STORAGE_KEY = 'heladeria_data'
 const SESSION_KEY = 'heladeria_session'
+const CART_KEY = 'heladeria_cart'
 
-function loadData(): AppData {
-  const stored = localStorage.getItem(STORAGE_KEY)
-  if (stored) {
-    try {
-      return JSON.parse(stored)
-    } catch {
-      return JSON.parse(JSON.stringify(seedData))
-    }
-  }
-  return JSON.parse(JSON.stringify(seedData))
+interface SessionUser {
+  id: number
+  nombre: string
+  email: string
+  rol: string
+  token: string
 }
 
-const state = reactive<AppData>(loadData())
+interface CartItem {
+  producto: ProductoResponse
+  cantidad: number
+}
 
-watch(state, () => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-}, { deep: true })
+interface AppState {
+  user: SessionUser | null
+  cart: CartItem[]
+  productos: ProductoResponse[]
+  categorias: Categoria[]
+  ventas: VentaResponse[]
+}
+
+function loadSession(): SessionUser | null {
+  const s = sessionStorage.getItem(SESSION_KEY)
+  if (s) {
+    try { return JSON.parse(s) } catch { return null }
+  }
+  return null
+}
+
+function loadCart(): CartItem[] {
+  const c = localStorage.getItem(CART_KEY)
+  if (c) {
+    try { return JSON.parse(c) } catch { return [] }
+  }
+  return []
+}
+
+const state = reactive<AppState>({
+  user: loadSession(),
+  cart: loadCart(),
+  productos: [],
+  categorias: [],
+  ventas: [],
+})
+
+function saveCart() {
+  localStorage.setItem(CART_KEY, JSON.stringify(state.cart))
+}
 
 export function useStore() {
 
-  function getSession(): Usuario | null {
-    const s = sessionStorage.getItem(SESSION_KEY)
-    if (s) {
-      try { return JSON.parse(s) } catch { return null }
-    }
-    return null
+  function getSession(): SessionUser | null {
+    return state.user
   }
 
-  function setSession(user: Usuario | null) {
+  function setSession(user: SessionUser | null) {
+    state.user = user
     if (user) sessionStorage.setItem(SESSION_KEY, JSON.stringify(user))
     else sessionStorage.removeItem(SESSION_KEY)
   }
 
-  function login(email: string, password: string): Usuario | null {
-    const user = state.usuarios.find(u => u.email === email && u.password === password)
-    if (user) {
-      setSession(user)
-      return user
+  async function login(email: string, password: string): Promise<string | null> {
+    try {
+      const res = await api.auth.login(email, password)
+      setSession(res)
+      return null
+    } catch (e: any) {
+      return e.message || 'Error al iniciar sesion'
     }
-    return null
+  }
+
+  async function register(nombre: string, email: string, password: string): Promise<string | null> {
+    try {
+      const res = await api.auth.register(nombre, email, password)
+      setSession(res)
+      return null
+    } catch (e: any) {
+      return e.message || 'Error al registrarse'
+    }
   }
 
   function logout() {
     setSession(null)
+    state.cart = []
+    localStorage.removeItem(CART_KEY)
   }
 
-  function register(nombre: string, email: string, password: string): string | null {
-    if (state.usuarios.some(u => u.email === email)) {
-      return 'Ya existe una cuenta con ese correo.'
-    }
-    if (password.length < 6) {
-      return 'La contrasena debe tener al menos 6 caracteres.'
-    }
-    const newUser: Usuario = {
-      id: Math.max(0, ...state.usuarios.map(u => u.id)) + 1,
-      nombre,
-      email,
-      password,
-      rol: 'empleado'
-    }
-    state.usuarios.push(newUser)
-    return null
+  function isAdmin(): boolean {
+    return state.user?.rol === 'admin'
+  }
+
+  async function loadProductos(): Promise<void> {
+    state.productos = await api.productos.getAll()
+  }
+
+  async function loadAllProductos(): Promise<void> {
+    state.productos = await api.productos.getAllAdmin()
+  }
+
+  async function loadCategorias(): Promise<void> {
+    state.categorias = await api.categorias.getAll()
+  }
+
+  async function loadVentas(): Promise<void> {
+    state.ventas = await api.ventas.getAll()
+  }
+
+  async function loadMisCompras(): Promise<void> {
+    state.ventas = await api.ventas.getMyPurchases()
+  }
+
+  function getProductos(): ProductoResponse[] {
+    return state.productos.filter(p => p.activo)
+  }
+
+  function getAllProductos(): ProductoResponse[] {
+    return state.productos
   }
 
   function getCategorias(): Categoria[] {
     return state.categorias
   }
 
-  function getProductos(): Producto[] {
-    return state.productos.filter(p => p.activo)
+  function getVentas(): VentaResponse[] {
+    return [...state.ventas].sort((a, b) => new Date(b.fechaVenta).getTime() - new Date(a.fechaVenta).getTime())
   }
 
-  function getAllProductos(): Producto[] {
-    return state.productos
-  }
-
-  function addProducto(data: { nombre: string; descripcion: string; precio: number; stock: number; id_categoria: number }) {
-    const newProduct: Producto = {
-      id: Math.max(0, ...state.productos.map(p => p.id)) + 1,
-      ...data,
-      activo: true
+  function addToCart(producto: ProductoResponse, cantidad: number = 1) {
+    const existing = state.cart.find(item => item.producto.id === producto.id)
+    if (existing) {
+      existing.cantidad += cantidad
+    } else {
+      state.cart.push({ producto, cantidad })
     }
-    state.productos.push(newProduct)
+    saveCart()
   }
 
-  function updateProducto(id: number, data: Partial<Producto>) {
-    const prod = state.productos.find(p => p.id === id)
-    if (prod) {
-      Object.assign(prod, data)
-    }
-  }
-
-  function deleteProducto(id: number) {
-    const prod = state.productos.find(p => p.id === id)
-    if (prod) {
-      prod.activo = false
+  function updateCartItem(productoId: number, cantidad: number) {
+    const item = state.cart.find(i => i.producto.id === productoId)
+    if (item) {
+      if (cantidad <= 0) {
+        removeFromCart(productoId)
+      } else {
+        item.cantidad = cantidad
+        saveCart()
+      }
     }
   }
 
-  function getVentas(): Venta[] {
-    return [...state.ventas].sort((a, b) => new Date(b.fecha_venta).getTime() - new Date(a.fecha_venta).getTime())
+  function removeFromCart(productoId: number) {
+    state.cart = state.cart.filter(i => i.producto.id !== productoId)
+    saveCart()
   }
 
-  function addVenta(usuarioId: number, items: { productoId: number; cantidad: number }[], metodo: MetodoPago, observaciones: string): string | null {
-    let total = 0
-    const resolvedItems: { producto: Producto; cantidad: number; precio: number; subtotal: number }[] = []
-
-    for (const item of items) {
-      const prod = state.productos.find(p => p.id === item.productoId && p.activo)
-      if (!prod) return `Producto ID ${item.productoId} no encontrado.`
-      if (prod.stock < item.cantidad) return `Stock insuficiente para "${prod.nombre}".`
-      const subtotal = prod.precio * item.cantidad
-      total += subtotal
-      resolvedItems.push({ producto: prod, cantidad: item.cantidad, precio: prod.precio, subtotal })
-    }
-
-    if (total <= 0) return 'La venta debe tener un total mayor a cero.'
-
-    const ventaId = Math.max(0, ...state.ventas.map(v => v.id)) + 1
-    const venta: Venta = {
-      id: ventaId,
-      id_usuario: usuarioId,
-      total,
-      metodo_pago: metodo,
-      observaciones,
-      fecha_venta: new Date().toISOString()
-    }
-    state.ventas.push(venta)
-
-    const detId = state.detalleVenta.length > 0
-      ? Math.max(0, ...state.detalleVenta.map(d => d.id)) + 1
-      : 1
-
-    resolvedItems.forEach((ri, i) => {
-      state.detalleVenta.push({
-        id: detId + i,
-        id_venta: ventaId,
-        id_producto: ri.producto.id,
-        cantidad: ri.cantidad,
-        precio_unitario: ri.precio,
-        subtotal: ri.subtotal
-      })
-      const prod = state.productos.find(p => p.id === ri.producto.id)
-      if (prod) prod.stock -= ri.cantidad
-    })
-
-    return null
+  function getCart(): CartItem[] {
+    return state.cart
   }
 
-  function deleteVenta(id: number) {
-    state.detalleVenta = state.detalleVenta.filter(d => d.id_venta !== id)
-    state.ventas = state.ventas.filter(v => v.id !== id)
+  function getCartTotal(): number {
+    return state.cart.reduce((sum, item) => sum + item.producto.precio * item.cantidad, 0)
   }
 
-  function getDetalleVenta(ventaId: number): DetalleVenta[] {
-    return state.detalleVenta.filter(d => d.id_venta === ventaId)
+  function getCartCount(): number {
+    return state.cart.reduce((sum, item) => sum + item.cantidad, 0)
   }
 
-  function getUsuarioById(id: number): Usuario | undefined {
-    return state.usuarios.find(u => u.id === id)
-  }
-
-  function getProductoById(id: number): Producto | undefined {
-    return state.productos.find(p => p.id === id)
+  function clearCart() {
+    state.cart = []
+    saveCart()
   }
 
   return {
     state,
     getSession,
+    setSession,
     login,
-    logout,
     register,
-    getCategorias,
+    logout,
+    isAdmin,
+    loadProductos,
+    loadAllProductos,
+    loadCategorias,
+    loadVentas,
+    loadMisCompras,
     getProductos,
     getAllProductos,
-    addProducto,
-    updateProducto,
-    deleteProducto,
+    getCategorias,
     getVentas,
-    addVenta,
-    deleteVenta,
-    getDetalleVenta,
-    getUsuarioById,
-    getProductoById
+    addToCart,
+    updateCartItem,
+    removeFromCart,
+    getCart,
+    getCartTotal,
+    getCartCount,
+    clearCart,
   }
 }

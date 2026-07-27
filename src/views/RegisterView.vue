@@ -2,35 +2,41 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from '@/composables/useStore'
+import { useToast } from '@/composables/useToast'
 
 const router = useRouter()
 const store = useStore()
+const toast = useToast()
 
 const nombre = ref('')
 const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
-const error = ref('')
-const success = ref('')
+const loading = ref(false)
 
-function handleRegister() {
-  error.value = ''
-  success.value = ''
-
+async function handleRegister() {
   if (!nombre.value || !email.value || !password.value || !confirmPassword.value) {
-    error.value = 'Complete todos los campos.'
+    toast.error('Complete todos los campos')
     return
   }
   if (password.value !== confirmPassword.value) {
-    error.value = 'Las contrasenas no coinciden.'
+    toast.error('Las contrasenas no coinciden')
     return
   }
-  const result = store.register(nombre.value, email.value, password.value)
-  if (result) {
-    error.value = result
+  if (password.value.length < 6) {
+    toast.error('La contrasena debe tener al menos 6 caracteres')
+    return
+  }
+
+  loading.value = true
+  const error = await store.register(nombre.value, email.value, password.value)
+  loading.value = false
+
+  if (error) {
+    toast.error(error)
   } else {
-    success.value = 'Cuenta creada exitosamente. Ya puedes iniciar sesion.'
-    setTimeout(() => router.push('/login'), 2000)
+    toast.success('Cuenta creada exitosamente!')
+    router.push('/')
   }
 }
 </script>
@@ -43,14 +49,6 @@ function handleRegister() {
       </div>
       <h1 class="register-title">Crear Cuenta</h1>
       <p class="register-subtitle">Unete a La Dolce Vita</p>
-
-      <div v-if="error" class="error-msg">
-        <i class="fas fa-exclamation-circle"></i> {{ error }}
-      </div>
-
-      <div v-if="success" class="success-msg">
-        <i class="fas fa-check-circle"></i> {{ success }}
-      </div>
 
       <form @submit.prevent="handleRegister">
         <div class="form-group">
@@ -86,8 +84,9 @@ function handleRegister() {
           </div>
         </div>
 
-        <button type="submit" class="btn-register">
-          <i class="fas fa-paper-plane"></i> Registrarse
+        <button type="submit" class="btn-register" :disabled="loading">
+          <i :class="loading ? 'fas fa-spinner fa-spin' : 'fas fa-paper-plane'"></i>
+          {{ loading ? 'Creando cuenta...' : 'Registrarse' }}
         </button>
       </form>
 
@@ -95,9 +94,7 @@ function handleRegister() {
         Ya tienes cuenta? <router-link to="/login">Inicia sesion</router-link>
       </div>
 
-      <div class="footer-decor">
-        Heladeria La Dolce Vita &copy; 2026
-      </div>
+      <div class="footer-decor">Heladeria La Dolce Vita &copy; 2026</div>
     </div>
   </div>
 </template>
@@ -121,65 +118,19 @@ function handleRegister() {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
 }
 
-.register-logo {
-  text-align: center;
-  margin-bottom: 10px;
-}
+.register-logo { text-align: center; margin-bottom: 10px; }
+.register-logo i { font-size: 45px; color: #9c27b0; }
+.register-title { text-align: center; font-size: 24px; font-weight: 700; color: #333; margin-bottom: 6px; }
+.register-subtitle { text-align: center; font-size: 14px; color: #888; margin-bottom: 30px; }
 
-.register-logo i {
-  font-size: 45px;
-  color: #9c27b0;
-}
+.form-row { display: flex; gap: 15px; }
+.form-row .form-group { flex: 1; }
 
-.register-title {
-  text-align: center;
-  font-size: 24px;
-  font-weight: 700;
-  color: #333;
-  margin-bottom: 6px;
-}
+.form-group { margin-bottom: 18px; }
+.form-group label { display: block; font-size: 13px; font-weight: 500; color: #555; margin-bottom: 6px; }
 
-.register-subtitle {
-  text-align: center;
-  font-size: 14px;
-  color: #888;
-  margin-bottom: 30px;
-}
-
-.form-row {
-  display: flex;
-  gap: 15px;
-}
-
-.form-row .form-group {
-  flex: 1;
-}
-
-.form-group {
-  margin-bottom: 18px;
-}
-
-.form-group label {
-  display: block;
-  font-size: 13px;
-  font-weight: 500;
-  color: #555;
-  margin-bottom: 6px;
-}
-
-.input-wrapper {
-  position: relative;
-}
-
-.input-wrapper i {
-  position: absolute;
-  left: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #bbb;
-  font-size: 15px;
-}
-
+.input-wrapper { position: relative; }
+.input-wrapper i { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #bbb; font-size: 15px; }
 .input-wrapper input {
   width: 100%;
   padding: 13px 16px 13px 46px;
@@ -190,13 +141,7 @@ function handleRegister() {
   transition: all 0.3s ease;
   background: #fafafa;
 }
-
-.input-wrapper input:focus {
-  outline: none;
-  border-color: #9c27b0;
-  background: #fff;
-  box-shadow: 0 0 0 4px rgba(156, 39, 176, 0.1);
-}
+.input-wrapper input:focus { outline: none; border-color: #9c27b0; background: #fff; box-shadow: 0 0 0 4px rgba(156, 39, 176, 0.1); }
 
 .btn-register {
   width: 100%;
@@ -212,53 +157,12 @@ function handleRegister() {
   transition: all 0.3s ease;
   margin-top: 8px;
 }
+.btn-register:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(156, 39, 176, 0.4); }
+.btn-register:disabled { opacity: 0.7; cursor: not-allowed; }
 
-.btn-register:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(156, 39, 176, 0.4);
-}
+.login-link { text-align: center; margin-top: 22px; font-size: 14px; color: #888; }
+.login-link a { color: #9c27b0; text-decoration: none; font-weight: 600; }
+.login-link a:hover { text-decoration: underline; }
 
-.error-msg {
-  background: #fff0f3;
-  color: #c62828;
-  padding: 12px 16px;
-  border-radius: 10px;
-  font-size: 13px;
-  margin-bottom: 18px;
-  border-left: 4px solid #c62828;
-}
-
-.success-msg {
-  background: #f0fff4;
-  color: #2e7d32;
-  padding: 12px 16px;
-  border-radius: 10px;
-  font-size: 13px;
-  margin-bottom: 18px;
-  border-left: 4px solid #2e7d32;
-}
-
-.login-link {
-  text-align: center;
-  margin-top: 22px;
-  font-size: 14px;
-  color: #888;
-}
-
-.login-link a {
-  color: #9c27b0;
-  text-decoration: none;
-  font-weight: 600;
-}
-
-.login-link a:hover {
-  text-decoration: underline;
-}
-
-.footer-decor {
-  text-align: center;
-  margin-top: 25px;
-  color: #ccc;
-  font-size: 12px;
-}
+.footer-decor { text-align: center; margin-top: 25px; color: #ccc; font-size: 12px; }
 </style>

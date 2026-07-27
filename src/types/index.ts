@@ -2,8 +2,8 @@ export interface Usuario {
   id: number
   nombre: string
   email: string
-  password: string
-  rol: 'admin' | 'empleado'
+  rol: 'admin' | 'cliente'
+  activo: boolean
 }
 
 export interface Categoria {
@@ -19,33 +19,6 @@ export interface Producto {
   precio: number
   stock: number
   id_categoria: number
+  nombre_categoria: string | null
   activo: boolean
-}
-
-export type MetodoPago = 'efectivo' | 'tarjeta' | 'transferencia'
-
-export interface Venta {
-  id: number
-  id_usuario: number
-  total: number
-  metodo_pago: MetodoPago
-  observaciones: string
-  fecha_venta: string
-}
-
-export interface DetalleVenta {
-  id: number
-  id_venta: number
-  id_producto: number
-  cantidad: number
-  precio_unitario: number
-  subtotal: number
-}
-
-export interface AppData {
-  usuarios: Usuario[]
-  categorias: Categoria[]
-  productos: Producto[]
-  ventas: Venta[]
-  detalleVenta: DetalleVenta[]
 }
