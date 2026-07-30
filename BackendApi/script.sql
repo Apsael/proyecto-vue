@@ -22,6 +22,10 @@ CREATE TABLE Usuarios (
     PasswordHash NVARCHAR(MAX) NOT NULL,
     Rol NVARCHAR(20) NOT NULL DEFAULT 'cliente',
     Activo BIT NOT NULL DEFAULT 1,
+    Verificado BIT NOT NULL DEFAULT 0,
+    TokenVerificacion NVARCHAR(100) NULL,
+    Latitud FLOAT NULL,
+    Longitud FLOAT NULL,
     FechaCreacion DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT UQ_Usuarios_Email UNIQUE (Email)
 );
@@ -48,6 +52,7 @@ CREATE TABLE Productos (
     Stock INT NOT NULL DEFAULT 0,
     IdCategoria INT NOT NULL,
     Activo BIT NOT NULL DEFAULT 1,
+    ImagenUrl NVARCHAR(500) NULL,
     FechaCreacion DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT FK_Productos_Categorias FOREIGN KEY (IdCategoria) REFERENCES Categorias(Id)
 );
@@ -62,6 +67,9 @@ CREATE TABLE Ventas (
     Total DECIMAL(18,2) NOT NULL,
     MetodoPago NVARCHAR(50) NOT NULL DEFAULT 'efectivo',
     Observaciones NVARCHAR(500) NULL,
+    DireccionEnvio NVARCHAR(200) NULL,
+    LatitudEntrega FLOAT NULL,
+    LongitudEntrega FLOAT NULL,
     FechaVenta DATETIME2 NOT NULL DEFAULT GETUTCDATE(),
     CONSTRAINT FK_Ventas_Usuarios FOREIGN KEY (IdUsuario) REFERENCES Usuarios(Id)
 );

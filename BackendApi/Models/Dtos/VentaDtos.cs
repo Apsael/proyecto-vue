@@ -23,6 +23,13 @@ namespace BackendApi.Models.Dtos
 
         [StringLength(500)]
         public string? Observaciones { get; set; }
+
+        [StringLength(100)]
+        public string? DireccionEnvio { get; set; }
+
+        public double? LatitudEntrega { get; set; }
+
+        public double? LongitudEntrega { get; set; }
     }
 
     public class VentaResponse
@@ -31,8 +38,13 @@ namespace BackendApi.Models.Dtos
         public decimal Total { get; set; }
         public string MetodoPago { get; set; } = string.Empty;
         public string? Observaciones { get; set; }
+        public string? DireccionEnvio { get; set; }
+        public string Estado { get; set; } = "pendiente";
+        public double? LatitudEntrega { get; set; }
+        public double? LongitudEntrega { get; set; }
         public DateTime FechaVenta { get; set; }
         public string? NombreUsuario { get; set; }
+        public string? EmailUsuario { get; set; }
         public List<DetalleVentaResponse> Detalles { get; set; } = new();
     }
 

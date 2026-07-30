@@ -25,6 +25,8 @@ const adminLinks = [
   { to: '/admin/dashboard', label: 'Panel', icon: 'fas fa-th-large' },
   { to: '/admin/productos', label: 'Productos', icon: 'fas fa-ice-cream' },
   { to: '/admin/ventas', label: 'Ventas', icon: 'fas fa-cash-register' },
+  { to: '/admin/despacho', label: 'Despacho', icon: 'fas fa-truck' },
+  { to: '/admin/empresa', label: 'Empresa', icon: 'fas fa-store' },
   { to: '/admin/usuarios', label: 'Usuarios', icon: 'fas fa-users' },
   { to: '/admin/reportes', label: 'Reportes', icon: 'fas fa-chart-bar' },
 ]
@@ -38,7 +40,8 @@ function handleLogout() {
 <template>
   <div class="topbar">
     <router-link to="/" class="topbar-brand">
-      <i class="fas fa-ice-cream"></i> La Dolce Vita
+      <img src="/logo.png" alt="La Dolce Vita" class="topbar-logo" />
+      La Dolce Vita
     </router-link>
 
     <div class="topbar-nav">
@@ -120,6 +123,8 @@ function handleLogout() {
   text-decoration: none;
   flex-shrink: 0;
 }
+
+.topbar-logo { height: 36px; }
 
 .topbar-nav {
   display: flex;

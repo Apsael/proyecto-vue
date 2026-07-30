@@ -63,6 +63,7 @@ namespace BackendApi.Controllers
                 Descripcion = request.Descripcion,
                 Precio = request.Precio,
                 Stock = request.Stock,
+                ImagenUrl = request.ImagenUrl,
                 IdCategoria = request.IdCategoria,
                 Activo = true,
                 FechaCreacion = DateTime.UtcNow
@@ -88,6 +89,7 @@ namespace BackendApi.Controllers
             producto.Descripcion = request.Descripcion;
             producto.Precio = request.Precio;
             producto.Stock = request.Stock;
+            producto.ImagenUrl = request.ImagenUrl;
             producto.IdCategoria = request.IdCategoria;
 
             await _context.SaveChangesAsync();
@@ -128,6 +130,7 @@ namespace BackendApi.Controllers
             Descripcion = p.Descripcion,
             Precio = p.Precio,
             Stock = p.Stock,
+            ImagenUrl = p.ImagenUrl,
             IdCategoria = p.IdCategoria,
             NombreCategoria = p.Categoria?.Nombre,
             Activo = p.Activo,

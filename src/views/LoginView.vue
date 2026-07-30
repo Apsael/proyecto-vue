@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useStore } from '@/composables/useStore'
 import { useToast } from '@/composables/useToast'
+import { api } from '@/services/api'
 
 const router = useRouter()
 const store = useStore()
@@ -11,6 +12,7 @@ const toast = useToast()
 const email = ref('')
 const password = ref('')
 const loading = ref(false)
+const notVerified = ref(false)
 
 async function handleLogin() {
   if (!email.value || !password.value) {
@@ -22,8 +24,12 @@ async function handleLogin() {
   loading.value = false
 
   if (error) {
+    if (error.toLowerCase().includes('verificar') || error.toLowerCase().includes('verificado')) {
+      notVerified.value = true
+    }
     toast.error(error)
   } else {
+    notVerified.value = false
     toast.success('Bienvenido!')
     const user = store.getSession()
     if (user?.rol === 'admin') {
@@ -31,6 +37,29 @@ async function handleLogin() {
     } else {
       router.push('/')
     }
+  }
+}
+
+async function reenviarVerificacion() {
+  if (!email.value) return
+  loading.value = true
+  try {
+    const res = await api.auth.reenviarVerificacion(email.value)
+    const data: any = res
+    const verificationLink = `${window.location.origin}/verificar?token=${data.token}`
+    const emailBody = `
+      <h2>Verifica tu cuenta - La Dolce Vita</h2>
+      <p>Haz clic en el siguiente enlace para verificar tu correo:</p>
+      <div style="text-align:center;margin:30px 0">
+        <a href="${verificationLink}" style="background-color:#e91e63;color:white;padding:12px 30px;text-decoration:none;border-radius:5px;display:inline-block">Verificar mi cuenta</a>
+      </div>
+      <p style="color:#999;font-size:14px">O copia este enlace: ${verificationLink}</p>`
+    await api.mail.send(email.value, 'Verifica tu correo - La Dolce Vita', emailBody)
+    toast.success('Correo de verificación reenviado')
+  } catch (e: any) {
+    toast.error(e.message || 'Error al reenviar verificación')
+  } finally {
+    loading.value = false
   }
 }
 </script>
@@ -66,6 +95,14 @@ async function handleLogin() {
           {{ loading ? 'Ingresando...' : 'Iniciar Sesion' }}
         </button>
       </form>
+
+      <div v-if="notVerified" class="verify-reminder">
+        <i class="fas fa-envelope"></i>
+        <p>Tu correo no ha sido verificado. Revisa tu bandeja de entrada.</p>
+        <button class="btn-resend" @click="reenviarVerificacion" :disabled="loading">
+          <i class="fas fa-paper-plane"></i> Reenviar correo de verificación
+        </button>
+      </div>
 
       <div class="register-link">
         No tienes cuenta? <router-link to="/register">Registrate aqui</router-link>
@@ -139,4 +176,11 @@ async function handleLogin() {
 .register-link a:hover { text-decoration: underline; }
 
 .footer-decor { text-align: center; margin-top: 30px; color: #ccc; font-size: 12px; }
+
+.verify-reminder { margin-top: 20px; padding: 16px; background: #fff3e0; border-radius: 12px; text-align: center; }
+.verify-reminder i { font-size: 28px; color: #e65100; margin-bottom: 8px; display: block; }
+.verify-reminder p { font-size: 13px; color: #e65100; margin-bottom: 12px; }
+.btn-resend { padding: 8px 18px; background: #e65100; color: white; border: none; border-radius: 8px; font-size: 12px; font-family: 'Poppins', sans-serif; cursor: pointer; font-weight: 500; transition: all 0.2s; }
+.btn-resend:hover { background: #bf360c; }
+.btn-resend:disabled { opacity: 0.6; cursor: not-allowed; }
 </style>

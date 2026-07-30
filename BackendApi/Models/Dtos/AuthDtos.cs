@@ -23,8 +23,14 @@ namespace BackendApi.Models.Dtos
         public string Email { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(100, MinimumLength = 6, ErrorMessage = "La contraseña debe tener al menos 6 caracteres")]
+        [StringLength(100, MinimumLength = 8, ErrorMessage = "La contraseña debe tener al menos 8 caracteres")]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$",
+            ErrorMessage = "La contraseña debe tener mayúsculas, minúsculas, números y caracteres especiales")]
         public string Password { get; set; } = string.Empty;
+
+        public double? Latitud { get; set; }
+
+        public double? Longitud { get; set; }
     }
 
     public class AuthResponse
@@ -34,6 +40,9 @@ namespace BackendApi.Models.Dtos
         public string Email { get; set; } = string.Empty;
         public string Rol { get; set; } = string.Empty;
         public string Token { get; set; } = string.Empty;
+        public bool Verificado { get; set; }
+        public double? Latitud { get; set; }
+        public double? Longitud { get; set; }
     }
 
     public class UpdateProfileRequest
@@ -71,6 +80,30 @@ namespace BackendApi.Models.Dtos
         public string Rol { get; set; } = "cliente";
 
         public bool Activo { get; set; } = true;
+    }
+
+    public class ReenviarVerificacionRequest
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = string.Empty;
+    }
+
+    public class UpdateLocationRequest
+    {
+        [Required]
+        [Range(-90, 90)]
+        public double Latitud { get; set; }
+
+        [Required]
+        [Range(-180, 180)]
+        public double Longitud { get; set; }
+    }
+
+    public class VerificarEmailRequest
+    {
+        [Required]
+        public string Token { get; set; } = string.Empty;
     }
 
     public class AdminCreateUsuarioRequest

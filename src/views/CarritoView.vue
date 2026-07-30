@@ -45,7 +45,10 @@ function goToCheckout() {
     <div v-else class="cart-layout">
       <div class="cart-items">
         <div v-for="item in cart" :key="item.producto.id" class="cart-item">
-          <div class="item-icon"><i class="fas fa-ice-cream"></i></div>
+          <div class="item-icon">
+            <img v-if="item.producto.imagenUrl" :src="item.producto.imagenUrl" :alt="item.producto.nombre" class="cart-thumb" />
+            <i v-else class="fas fa-ice-cream"></i>
+          </div>
           <div class="item-info">
             <h3>{{ item.producto.nombre }}</h3>
             <p class="item-cat">{{ item.producto.nombreCategoria }}</p>
@@ -161,8 +164,8 @@ function goToCheckout() {
 }
 
 .item-icon {
-  width: 50px;
-  height: 50px;
+  width: 60px;
+  height: 60px;
   border-radius: 12px;
   background: linear-gradient(135deg, #fce4ec, #f8bbd0);
   display: flex;
@@ -171,7 +174,10 @@ function goToCheckout() {
   color: #e91e63;
   font-size: 20px;
   flex-shrink: 0;
+  overflow: hidden;
 }
+
+.cart-thumb { width: 100%; height: 100%; object-fit: cover; }
 
 .item-info { flex: 1; }
 

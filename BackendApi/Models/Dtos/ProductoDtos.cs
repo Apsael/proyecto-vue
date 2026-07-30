@@ -19,6 +19,9 @@ namespace BackendApi.Models.Dtos
         [Range(0, int.MaxValue)]
         public int Stock { get; set; }
 
+        [StringLength(500)]
+        public string? ImagenUrl { get; set; }
+
         public int IdCategoria { get; set; }
     }
 
@@ -29,6 +32,7 @@ namespace BackendApi.Models.Dtos
         public string? Descripcion { get; set; }
         public decimal Precio { get; set; }
         public int Stock { get; set; }
+        public string? ImagenUrl { get; set; }
         public int IdCategoria { get; set; }
         public string? NombreCategoria { get; set; }
         public bool Activo { get; set; }

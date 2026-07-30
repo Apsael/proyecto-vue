@@ -8,11 +8,14 @@ import CarritoView from '@/views/CarritoView.vue'
 import CheckoutView from '@/views/CheckoutView.vue'
 import MisComprasView from '@/views/MisComprasView.vue'
 import MiPerfilView from '@/views/MiPerfilView.vue'
+import VerificarView from '@/views/VerificarView.vue'
 import AdminDashboardView from '@/views/AdminDashboardView.vue'
 import AdminProductosView from '@/views/AdminProductosView.vue'
 import AdminUsuariosView from '@/views/AdminUsuariosView.vue'
 import AdminVentasView from '@/views/AdminVentasView.vue'
 import AdminReportesView from '@/views/AdminReportesView.vue'
+import AdminDespachoView from '@/views/AdminDespachoView.vue'
+import AdminEmpresaView from '@/views/AdminEmpresaView.vue'
 
 const router = createRouter({
   history: createWebHistory(),
@@ -21,6 +24,7 @@ const router = createRouter({
     { path: '/about', name: 'about', component: AboutView },
     { path: '/login', name: 'login', component: LoginView },
     { path: '/register', name: 'register', component: RegisterView },
+    { path: '/verificar', name: 'verificar', component: VerificarView },
     { path: '/carrito', name: 'carrito', component: CarritoView, meta: { requiresAuth: true } },
     { path: '/checkout', name: 'checkout', component: CheckoutView, meta: { requiresAuth: true } },
     { path: '/mis-compras', name: 'mis-compras', component: MisComprasView, meta: { requiresAuth: true } },
@@ -30,6 +34,8 @@ const router = createRouter({
     { path: '/admin/usuarios', name: 'admin-usuarios', component: AdminUsuariosView, meta: { requiresAuth: true, requiresAdmin: true } },
     { path: '/admin/ventas', name: 'admin-ventas', component: AdminVentasView, meta: { requiresAuth: true, requiresAdmin: true } },
     { path: '/admin/reportes', name: 'admin-reportes', component: AdminReportesView, meta: { requiresAuth: true, requiresAdmin: true } },
+    { path: '/admin/despacho', name: 'admin-despacho', component: AdminDespachoView, meta: { requiresAuth: true, requiresAdmin: true } },
+    { path: '/admin/empresa', name: 'admin-empresa', component: AdminEmpresaView, meta: { requiresAuth: true, requiresAdmin: true } },
   ]
 })
 

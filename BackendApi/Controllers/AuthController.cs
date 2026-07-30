@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -29,6 +30,8 @@ namespace BackendApi.Controllers
             if (await _context.Usuarios.AnyAsync(u => u.Email == request.Email))
                 return BadRequest(new { mensaje = "Ya existe una cuenta con ese correo." });
 
+            var token = Guid.NewGuid().ToString("N");
+
             var user = new Usuario
             {
                 Nombre = request.Nombre,
@@ -36,6 +39,10 @@ namespace BackendApi.Controllers
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
                 Rol = "cliente",
                 Activo = true,
+                Verificado = false,
+                TokenVerificacion = token,
+                Latitud = request.Latitud,
+                Longitud = request.Longitud,
                 FechaCreacion = DateTime.UtcNow
             };
 
@@ -48,8 +55,39 @@ namespace BackendApi.Controllers
                 Nombre = user.Nombre,
                 Email = user.Email,
                 Rol = user.Rol,
-                Token = GenerateToken(user)
+                Verificado = false,
+                Token = user.TokenVerificacion!
             });
+        }
+
+        [HttpPost("verificar")]
+        public async Task<IActionResult> VerificarEmail([FromBody] VerificarEmailRequest request)
+        {
+            var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.TokenVerificacion == request.Token);
+            if (user == null)
+                return BadRequest(new { mensaje = "Token invalido." });
+
+            user.Verificado = true;
+            user.TokenVerificacion = null;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { mensaje = "Email verificado correctamente." });
+        }
+
+        [HttpPost("reenviar-verificacion")]
+        public async Task<IActionResult> ReenviarVerificacion([FromBody] ReenviarVerificacionRequest request)
+        {
+            var user = await _context.Usuarios.FirstOrDefaultAsync(u => u.Email == request.Email);
+            if (user == null)
+                return BadRequest(new { mensaje = "Usuario no encontrado." });
+
+            if (user.Verificado)
+                return BadRequest(new { mensaje = "El email ya esta verificado." });
+
+            user.TokenVerificacion = Guid.NewGuid().ToString("N");
+            await _context.SaveChangesAsync();
+
+            return Ok(new { mensaje = "Token regenerado.", token = user.TokenVerificacion });
         }
 
         [HttpPost("login")]
@@ -60,17 +98,24 @@ namespace BackendApi.Controllers
             if (user == null || !user.Activo || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
                 return Unauthorized(new { mensaje = "Correo o contrasena incorrectos." });
 
+            if (!user.Verificado && user.Rol != "admin")
+                return Unauthorized(new { mensaje = "Debes verificar tu correo antes de iniciar sesion. Revisa tu bandeja de entrada." });
+
             return Ok(new AuthResponse
             {
                 Id = user.Id,
                 Nombre = user.Nombre,
                 Email = user.Email,
                 Rol = user.Rol,
+                Verificado = user.Verificado,
+                Latitud = user.Latitud,
+                Longitud = user.Longitud,
                 Token = GenerateToken(user)
             });
         }
 
         [HttpGet("me")]
+        [Authorize]
         public async Task<ActionResult<AuthResponse>> Me()
         {
             var userId = GetUserId();
@@ -85,11 +130,15 @@ namespace BackendApi.Controllers
                 Nombre = user.Nombre,
                 Email = user.Email,
                 Rol = user.Rol,
+                Verificado = user.Verificado,
+                Latitud = user.Latitud,
+                Longitud = user.Longitud,
                 Token = ""
             });
         }
 
         [HttpPut("perfil")]
+        [Authorize]
         public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileRequest request)
         {
             var userId = GetUserId();
@@ -112,11 +161,32 @@ namespace BackendApi.Controllers
                 Nombre = user.Nombre,
                 Email = user.Email,
                 Rol = user.Rol,
+                Verificado = user.Verificado,
+                Latitud = user.Latitud,
+                Longitud = user.Longitud,
                 Token = GenerateToken(user)
             });
         }
 
+        [HttpPut("ubicacion")]
+        [Authorize]
+        public async Task<IActionResult> UpdateUbicacion([FromBody] UpdateLocationRequest request)
+        {
+            var userId = GetUserId();
+            if (userId == null) return Unauthorized();
+
+            var user = await _context.Usuarios.FindAsync(userId);
+            if (user == null) return NotFound();
+
+            user.Latitud = request.Latitud;
+            user.Longitud = request.Longitud;
+            await _context.SaveChangesAsync();
+
+            return Ok(new { mensaje = "Ubicacion actualizada correctamente." });
+        }
+
         [HttpPut("password")]
+        [Authorize]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
         {
             var userId = GetUserId();

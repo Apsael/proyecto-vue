@@ -20,6 +20,16 @@ namespace BackendApi.Models
         [StringLength(500)]
         public string? Observaciones { get; set; }
 
+        [StringLength(20)]
+        public string Estado { get; set; } = "pendiente";
+
+        [StringLength(100)]
+        public string? DireccionEnvio { get; set; }
+
+        public double? LatitudEntrega { get; set; }
+
+        public double? LongitudEntrega { get; set; }
+
         public DateTime FechaVenta { get; set; } = DateTime.UtcNow;
 
         public Usuario? Usuario { get; set; }

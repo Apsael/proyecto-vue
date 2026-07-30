@@ -63,6 +63,9 @@ namespace BackendApi.Controllers
                 Total = total,
                 MetodoPago = request.MetodoPago,
                 Observaciones = request.Observaciones,
+                DireccionEnvio = request.DireccionEnvio,
+                LatitudEntrega = request.LatitudEntrega,
+                LongitudEntrega = request.LongitudEntrega,
                 FechaVenta = DateTime.UtcNow
             };
 
@@ -77,14 +80,13 @@ namespace BackendApi.Controllers
 
             await _context.SaveChangesAsync();
 
-            return Ok(new VentaResponse
+            await _context.Entry(venta).Reference(v => v.Usuario).LoadAsync();
+            foreach (var d in venta.Detalles)
             {
-                Id = venta.Id,
-                Total = venta.Total,
-                MetodoPago = venta.MetodoPago,
-                Observaciones = venta.Observaciones,
-                FechaVenta = venta.FechaVenta
-            });
+                await _context.Entry(d).Reference(d => d.Producto).LoadAsync();
+            }
+
+            return Ok(ToResponse(venta));
         }
 
         [HttpGet("mis-compras")]
@@ -96,6 +98,7 @@ namespace BackendApi.Controllers
 
             var ventas = await _context.Ventas
                 .Where(v => v.IdUsuario == userId)
+                .Include(v => v.Usuario)
                 .Include(v => v.Detalles)
                     .ThenInclude(d => d.Producto)
                 .OrderByDescending(v => v.FechaVenta)
@@ -176,14 +179,32 @@ namespace BackendApi.Controllers
             return User.FindFirst(ClaimTypes.Role)?.Value;
         }
 
+        [HttpPatch("{id}/estado")]
+        [Authorize(Roles = "admin")]
+        public async Task<IActionResult> UpdateEstado(int id, [FromBody] UpdateEstadoRequest request)
+        {
+            var venta = await _context.Ventas.FindAsync(id);
+            if (venta == null)
+                return NotFound();
+
+            venta.Estado = request.Estado;
+            await _context.SaveChangesAsync();
+            return NoContent();
+        }
+
         private static VentaResponse ToResponse(Venta v) => new()
         {
             Id = v.Id,
             Total = v.Total,
             MetodoPago = v.MetodoPago,
             Observaciones = v.Observaciones,
+            DireccionEnvio = v.DireccionEnvio,
+            Estado = v.Estado,
+            LatitudEntrega = v.LatitudEntrega,
+            LongitudEntrega = v.LongitudEntrega,
             FechaVenta = v.FechaVenta,
             NombreUsuario = v.Usuario?.Nombre,
+            EmailUsuario = v.Usuario?.Email,
             Detalles = v.Detalles.Select(d => new DetalleVentaResponse
             {
                 Id = d.Id,
@@ -193,5 +214,10 @@ namespace BackendApi.Controllers
                 Subtotal = d.Cantidad * d.PrecioUnitario
             }).ToList()
         };
+    }
+
+    public class UpdateEstadoRequest
+    {
+        public string Estado { get; set; } = string.Empty;
     }
 }

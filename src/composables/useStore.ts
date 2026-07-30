@@ -76,9 +76,9 @@ export function useStore() {
     }
   }
 
-  async function register(nombre: string, email: string, password: string): Promise<string | null> {
+  async function register(nombre: string, email: string, password: string, latitud?: number, longitud?: number): Promise<string | null> {
     try {
-      const res = await api.auth.register(nombre, email, password)
+      const res = await api.auth.register(nombre, email, password, latitud, longitud)
       setSession(res)
       return null
     } catch (e: any) {
@@ -112,6 +112,10 @@ export function useStore() {
     state.ventas = await api.ventas.getAll()
   }
 
+  async function loadAllVentas(): Promise<void> {
+    state.ventas = await api.ventas.getAll()
+  }
+
   async function loadMisCompras(): Promise<void> {
     state.ventas = await api.ventas.getMyPurchases()
   }
@@ -130,6 +134,10 @@ export function useStore() {
 
   function getVentas(): VentaResponse[] {
     return [...state.ventas].sort((a, b) => new Date(b.fechaVenta).getTime() - new Date(a.fechaVenta).getTime())
+  }
+
+  function getAllVentas(): VentaResponse[] {
+    return state.ventas
   }
 
   function addToCart(producto: ProductoResponse, cantidad: number = 1) {
@@ -188,11 +196,13 @@ export function useStore() {
     loadAllProductos,
     loadCategorias,
     loadVentas,
+    loadAllVentas,
     loadMisCompras,
     getProductos,
     getAllProductos,
     getCategorias,
     getVentas,
+    getAllVentas,
     addToCart,
     updateCartItem,
     removeFromCart,

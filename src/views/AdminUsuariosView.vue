@@ -76,6 +76,21 @@ async function handleDelete(id: number) {
     toast.error(e.message || 'Error al desactivar usuario')
   }
 }
+
+async function toggleActivo(u: UsuarioResponse) {
+  try {
+    await api.usuarios.update(u.id, {
+      nombre: u.nombre,
+      email: u.email,
+      rol: u.rol,
+      activo: !u.activo,
+    })
+    u.activo = !u.activo
+    toast.success(`Usuario ${u.activo ? 'activado' : 'desactivado'}`)
+  } catch (e: any) {
+    toast.error(e.message || 'Error al cambiar estado')
+  }
+}
 </script>
 
 <template>
@@ -100,12 +115,16 @@ async function handleDelete(id: number) {
             <td><strong>{{ u.nombre }}</strong></td>
             <td>{{ u.email }}</td>
             <td><span class="badge" :class="u.rol === 'admin' ? 'badge-admin' : 'badge-cliente'">{{ u.rol }}</span></td>
-            <td><span class="badge" :class="u.activo ? 'badge-active' : 'badge-inactive'">{{ u.activo ? 'Activo' : 'Inactivo' }}</span></td>
+            <td>
+              <label class="toggle-switch" @click.prevent.stop="toggleActivo(u)">
+                <input type="checkbox" :checked="u.activo" />
+                <span class="toggle-slider"></span>
+              </label>
+            </td>
             <td>{{ new Date(u.fechaCreacion).toLocaleDateString('es-ES') }}</td>
             <td>
               <div class="actions">
                 <button class="btn-icon btn-edit" title="Editar" @click="openEdit(u)"><i class="fas fa-pen"></i></button>
-                <button class="btn-icon btn-delete" title="Desactivar" @click="handleDelete(u.id)"><i class="fas fa-user-slash"></i></button>
               </div>
             </td>
           </tr>
@@ -187,7 +206,6 @@ tbody tr:hover { background: #fdf2f8; }
 .actions { display: flex; gap: 6px; }
 .btn-icon { width: 34px; height: 34px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
 .btn-edit { background: #e3f2fd; color: #1565c0; }
-.btn-delete { background: #fce4ec; color: #c62828; }
 .btn-icon:hover { transform: scale(1.1); }
 
 .empty-state { text-align: center; padding: 50px 20px; color: #aaa; }
@@ -204,4 +222,17 @@ tbody tr:hover { background: #fdf2f8; }
 .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
 .btn-cancel { flex: 1; padding: 12px; background: #f5f5f5; color: #666; border: none; border-radius: 10px; font-size: 14px; font-family: 'Poppins', sans-serif; cursor: pointer; font-weight: 500; }
 .btn-save { flex: 1; padding: 12px; background: linear-gradient(135deg, #e91e63, #f06292); color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; font-family: 'Poppins', sans-serif; cursor: pointer; }
+
+.toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; cursor: pointer; }
+.toggle-switch input { display: none; }
+.toggle-slider {
+  position: absolute; inset: 0; background: #e0e0e0; border-radius: 24px;
+  transition: all 0.3s ease; cursor: pointer;
+}
+.toggle-slider::before {
+  content: ''; position: absolute; left: 3px; bottom: 3px; width: 18px; height: 18px;
+  background: white; border-radius: 50%; transition: all 0.3s ease; box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+.toggle-switch input:checked + .toggle-slider { background: linear-gradient(135deg, #e91e63, #f06292); }
+.toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
 </style>

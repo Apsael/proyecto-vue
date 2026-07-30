@@ -30,6 +30,10 @@ namespace BackendApi.Data
                 e.HasIndex(u => u.Email).IsUnique();
                 e.Property(u => u.PasswordHash).IsRequired();
                 e.Property(u => u.Rol).IsRequired().HasMaxLength(20);
+                e.Property(u => u.Verificado).HasDefaultValue(false);
+                e.Property(u => u.TokenVerificacion).HasMaxLength(100).IsRequired(false);
+                e.Property(u => u.Latitud).IsRequired(false);
+                e.Property(u => u.Longitud).IsRequired(false);
             });
 
             modelBuilder.Entity<Categoria>(e =>
@@ -49,6 +53,7 @@ namespace BackendApi.Data
                 e.Property(p => p.Nombre).IsRequired().HasMaxLength(100);
                 e.Property(p => p.Descripcion).HasMaxLength(500);
                 e.Property(p => p.Precio).HasColumnType("decimal(18,2)");
+                e.Property(p => p.ImagenUrl).HasMaxLength(500).IsRequired(false);
                 e.HasOne(p => p.Categoria)
                     .WithMany()
                     .HasForeignKey(p => p.IdCategoria)
@@ -63,6 +68,9 @@ namespace BackendApi.Data
                 e.Property(v => v.Total).HasColumnType("decimal(18,2)");
                 e.Property(v => v.MetodoPago).IsRequired().HasMaxLength(50);
                 e.Property(v => v.Observaciones).HasMaxLength(500);
+                e.Property(v => v.DireccionEnvio).HasMaxLength(200).IsRequired(false);
+                e.Property(v => v.LatitudEntrega).IsRequired(false);
+                e.Property(v => v.LongitudEntrega).IsRequired(false);
                 e.HasOne(v => v.Usuario)
                     .WithMany()
                     .HasForeignKey(v => v.IdUsuario)

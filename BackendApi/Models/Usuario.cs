@@ -24,6 +24,15 @@ namespace BackendApi.Models
 
         public bool Activo { get; set; } = true;
 
+        public bool Verificado { get; set; } = false;
+
+        [StringLength(100)]
+        public string? TokenVerificacion { get; set; }
+
+        public double? Latitud { get; set; }
+
+        public double? Longitud { get; set; }
+
         public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
     }
 }

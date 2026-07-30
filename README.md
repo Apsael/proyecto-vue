@@ -1,35 +1,66 @@
 # La Dolce Vita - Heladeria Artesanal
 
-Sistema completo de gestion para heladeria con **Vue 3 + TypeScript** (frontend) y **ASP.NET Core 10.0 + SQL Server** (backend). Incluye vitrina de productos, carrito de compras, autenticacion JWT, panel de administracion y reportes.
+Sistema completo de gestion para heladeria con **Vue 3 + TypeScript** (frontend) y **ASP.NET Core 10.0 + SQL Server** (backend). Incluye vitrina de productos, carrito de compras, autenticacion JWT con verificacion por email, checkout con mapa Leaflet, panel de administracion con despacho OSRM, envio de correos con MailKit, y reportes.
+
+---
+
+## Capturas de pantalla
+
+| Inicio | Productos | Carrito |
+|:------:|:---------:|:-------:|
+| ![inicio](mockups/inicio.png) | ![productos](mockups/productos.png) | ![carrito](mockups/carrito.png) |
+
+| Registro | Inicio de sesion | Sobre nosotros |
+|:--------:|:----------------:|:--------------:|
+| ![registro](mockups/registro.png) | ![inicio-sesion](mockups/inicio-sesion.png) | ![sobre-nosotros](mockups/sobre-nosotros.png) |
+
+| Procesar compra | Compra exitosa | Mis compras |
+|:---------------:|:--------------:|:-----------:|
+| ![procesar-compra](mockups/procesar-compra.png) | ![compra-existosa](mockups/compra-existosa.png) | ![mis-compras](mockups/mis-compras.png) |
+
+| Correo verificacion | Correo compra | Exito verificacion |
+|:-------------------:|:-------------:|:------------------:|
+| ![correo-verificacion](mockups/correo-verificacion.png) | ![correo-compra](mockups/correo-compra.png) | ![exito-verificacion](mockups/exito-verificacion.png) |
+
+| Dashboard admin | Panel de despacho |
+|:--------------:|:-----------------:|
+| ![dashboard](mockups/dashboard.png) | ![panel-despacho](mockups/panel-despacho.png) |
 
 ---
 
 ## Funcionalidades
 
 ### Publico (sin sesion)
-- **Vitrina de productos** con busqueda por nombre/categoria
+- **Vitrina de productos** con busqueda por nombre, imagenes de producto
 - **Pagina "Nosotros"** con informacion de la heladeria
 - Navegacion libre por el catalogo
 
 ### Cliente (sesion iniciada)
 - **Carrito de compras** con cantidad, subtotal y total
-- **Checkout** con seleccion de metodo de pago (efectivo/tarjeta/transferencia)
-- **Historial de compras** con detalle de cada pedido
-- **Perfil** para actualizar nombre, correo y contrasena
+- **Checkout** con formulario de tarjeta (datos simulados), loader animado de 2 segundos
+- **Seleccion de entrega**: Recoger en tienda o envio a domicilio con mapa Leaflet
+- **Recibo profesional** modal con detalle, descarga PDF via impresion
+- **Correo de confirmacion** enviado automaticamente tras cada compra via MailKit (Gmail SMTP)
+- **Historial de compras** con recibo detallado y boton de impresion
+- **Perfil** para actualizar nombre, correo, contrasena con indicador de fortaleza y ubicacion en mapa Leaflet
+- **Verificacion de email** token enviado al correo, recordatorio en login si no verificado, reenvio con envio de correo
 
 ### Administrador
 - **Panel de control** con acceso rapido a todas las secciones
-- **Gestion de productos**: crear, editar, desactivar (CRUD completo)
-- **Gestion de usuarios**: crear, editar roles, activar/desactivar
+- **Gestion de productos**: CRUD completo con campo de URL de imagen y thumbnails
+- **Gestion de usuarios**: crear, editar roles, toggle directo activar/desactivar
+- **Panel de despacho**: mapa Leaflet con marcadores de clientes, rutas OSRM con distancia y tiempo estimado, boton "Completado" para finalizar entrega
+- **Configuracion de empresa**: marcador draggeable en mapa Leaflet para establecer ubicacion de la heladeria
 - **Historial de ventas**: ver todas las ventas del sistema, eliminar con restauracion de stock
 - **Reportes**: estadisticas, top productos, ventas por metodo de pago, alertas de stock bajo
 
 ### Seguridad
 - Autenticacion **JWT** (tokens con expiracion de 8 horas)
 - Contrasenas hasheadas con **BCrypt**
+- Contrasena segura: minimo 8 caracteres, mayuscula, minuscula, digito y caracter especial
 - Autorizacion por roles (admin/cliente)
 - **CORS** configurado solo para el frontend
-- Notificaciones **flotantes** (toast) que no desplazan la UI
+- Notificaciones **flotantes** (toast) en el lado izquierdo de la pantalla con animacion slide-in
 
 ---
 
@@ -50,62 +81,85 @@ Sistema completo de gestion para heladeria con **Vue 3 + TypeScript** (frontend)
 proyecto-vue/
 ├── BackendApi/                          # Backend ASP.NET Core 10.0
 │   ├── Controllers/
-│   │   ├── AuthController.cs            # Login, registro, perfil, password
+│   │   ├── AuthController.cs            # Login, registro, verificacion email, ubicacion
 │   │   ├── ProductosController.cs       # CRUD productos (publico + admin)
 │   │   ├── CategoriasController.cs      # CRUD categorias
 │   │   ├── UsuariosController.cs        # Gestion de usuarios (admin)
-│   │   └── VentasController.cs          # Ventas y historial de compras
+│   │   ├── VentasController.cs          # Ventas, historial, cambio de estado
+│   │   ├── MailController.cs            # Envio de correos via MailKit SMTP
+│   │   └── ConfigController.cs          # Configuracion de la empresa (lat/lng)
+│   ├── Services/
+│   │   └── EmailService.cs              # Servicio de correo con MailKit
 │   ├── Data/
-│   │   ├── ApplicationDbContext.cs       # DbContext y configuracion EF Core
+│   │   ├── ApplicationDbContext.cs      # DbContext y configuracion EF Core
 │   │   └── SeedData.cs                  # Seeding de admin, categorias y productos
 │   ├── Models/
-│   │   ├── Usuario.cs
+│   │   ├── Usuario.cs                   # Verificado, TokenVerificacion, Latitud, Longitud
 │   │   ├── Categoria.cs
-│   │   ├── Producto.cs
-│   │   ├── Venta.cs
+│   │   ├── Producto.cs                  # ImagenUrl
+│   │   ├── Venta.cs                     # Estado, DireccionEnvio, LatitudEntrega, LongitudEntrega
 │   │   ├── DetalleVenta.cs
 │   │   └── Dtos/
-│   │       ├── AuthDtos.cs              # Login, Register, Profile, Password
-│   │       ├── ProductoDtos.cs          # Request/Response de productos
-│   │       └── VentaDtos.cs             # Request/Response de ventas
+│   │       ├── AuthDtos.cs              # Login, Register, Profile, Password, UpdateLocation
+│   │       ├── ProductoDtos.cs
+│   │       └── VentaDtos.cs             # VentaResponse con Estado
 │   ├── BackendApi.csproj
-│   ├── Program.cs                       # Registro de servicios, JWT, CORS, seeder
-│   ├── appsettings.json                 # Cadena de conexion y configuracion JWT
-│   └── script.sql                       # Script SQL Server (esquema + datos)
+│   ├── Program.cs                       # DI, JWT, CORS, EmailService, seeder
+│   ├── appsettings.json                 # Connection string, JWT, SMTP, Empresa
+│   └── script.sql
+│
+├── mockups/                             # Capturas de pantalla del sistema
+│   ├── inicio.png
+│   ├── productos.png
+│   ├── carrito.png
+│   ├── registro.png
+│   ├── inicio-sesion.png
+│   ├── sobre-nosotros.png
+│   ├── procesar-compra.png
+│   ├── compra-existosa.png
+│   ├── mis-compras.png
+│   ├── correo-verificacion.png
+│   ├── correo-compra.png
+│   ├── exito-verificacion.png
+│   ├── dashboard.png
+│   └── panel-despacho.png
 │
 ├── src/                                 # Frontend Vue 3
 │   ├── assets/
-│   │   └── main.css                     # Estilos globales (Poppins, Font Awesome)
+│   │   └── main.css                     # Estilos globales, animaciones, responsive
 │   ├── components/
 │   │   ├── Modal.vue                    # Modal reutilizable
-│   │   ├── Toast.vue                    # Notificaciones flotantes
-│   │   └── TopBar.vue                   # Barra de navegacion superior
+│   │   ├── Toast.vue                    # Notificaciones flotantes (izquierda)
+│   │   └── TopBar.vue                   # Barra de navegacion con logo
 │   ├── composables/
 │   │   ├── useStore.ts                  # Estado central + llamadas API
 │   │   └── useToast.ts                  # Sistema de notificaciones toast
 │   ├── router/
 │   │   └── index.ts                     # Rutas con guard de auth y roles
 │   ├── services/
-│   │   └── api.ts                       # Cliente HTTP para el backend
-│   ├── types/
-│   │   └── index.ts                     # Definiciones TypeScript
+│   │   └── api.ts                       # Cliente HTTP para backend C# (tipo seguro)
 │   ├── views/
-│   │   ├── HomeView.vue                 # Vitrina publica de productos
-│   │   ├── AboutView.vue                # Pagina "Nosotros"
-│   │   ├── LoginView.vue                # Inicio de sesion
-│   │   ├── RegisterView.vue             # Registro de cliente
-│   │   ├── CarritoView.vue              # Carrito de compras
-│   │   ├── CheckoutView.vue             # Pago y confirmacion
-│   │   ├── MisComprasView.vue           # Historial de compras del cliente
-│   │   ├── MiPerfilView.vue             # Editar perfil y contrasena
+│   │   ├── HomeView.vue                 # Vitrina con busqueda e imagenes
+│   │   ├── AboutView.vue                # Informacion + WhatsApp link
+│   │   ├── LoginView.vue                # Login con recordatorio de verificacion
+│   │   ├── RegisterView.vue             # Registro con mapa Leaflet + fortaleza password
+│   │   ├── VerificarView.vue            # Pagina de verificacion de email
+│   │   ├── CarritoView.vue              # Carrito con thumbnails
+│   │   ├── CheckoutView.vue             # Pago, loader animado, mapa, correo recibo
+│   │   ├── MisComprasView.vue           # Historial con recibo profesional y PDF
+│   │   ├── MiPerfilView.vue             # Perfil con contrasena y ubicacion
 │   │   ├── AdminDashboardView.vue       # Panel de control admin
-│   │   ├── AdminProductosView.vue       # CRUD productos (admin)
-│   │   ├── AdminUsuariosView.vue        # Gestion de usuarios (admin)
-│   │   ├── AdminVentasView.vue          # Historial de ventas (admin)
+│   │   ├── AdminProductosView.vue       # CRUD productos con campo imagen
+│   │   ├── AdminUsuariosView.vue        # Gestion de usuarios con toggle
+│   │   ├── AdminVentasView.vue          # Historial de ventas
+│   │   ├── AdminDespachoView.vue        # Mapa Leaflet + OSRM + completar entrega
+│   │   ├── AdminEmpresaView.vue         # Marcador empresa en mapa Leaflet
 │   │   └── AdminReportesView.vue        # Reportes y estadisticas
 │   ├── App.vue                          # Componente raiz
-│   └── main.ts                          # Punto de entrada
+│   └── main.ts                          # Punto de entrada + leaflet CSS
 │
+├── public/
+│   └── logo.png
 ├── index.html
 ├── package.json
 ├── tsconfig.json
@@ -120,9 +174,10 @@ proyecto-vue/
 | Ruta                  | Descripcion                     | Auth    | Rol     |
 |-----------------------|---------------------------------|---------|---------|
 | `/`                   | Vitrina de productos (inicio)   | No      | -       |
-| `/about`              | Nosotros                        | No      | -       |
+| `/about`              | Nosotros + WhatsApp             | No      | -       |
 | `/login`              | Inicio de sesion                | No      | -       |
 | `/register`           | Registro de cliente             | No      | -       |
+| `/verificar`          | Verificacion de email           | No      | -       |
 | `/carrito`            | Carrito de compras              | Si      | Cualquiera |
 | `/checkout`           | Pago y confirmacion             | Si      | Cualquiera |
 | `/mis-compras`        | Historial de compras            | Si      | Cualquiera |
@@ -131,6 +186,8 @@ proyecto-vue/
 | `/admin/productos`    | CRUD productos                  | Si      | admin   |
 | `/admin/usuarios`     | Gestion de usuarios             | Si      | admin   |
 | `/admin/ventas`       | Historial de ventas             | Si      | admin   |
+| `/admin/despacho`     | Mapa de despacho con rutas      | Si      | admin   |
+| `/admin/empresa`      | Configurar ubicacion empresa    | Si      | admin   |
 | `/admin/reportes`     | Reportes y estadisticas         | Si      | admin   |
 
 ---
@@ -139,32 +196,38 @@ proyecto-vue/
 
 ### Frontend
 - **Vue 3.5** (Composition API + `<script setup>`)
-- **TypeScript 6**
-- **Vite 8** (con proxy a backend)
+- **TypeScript**
+- **Vite 8**
 - **Vue Router 4**
+- **Leaflet** (mapas interactivos + OSRM routing)
 - CSS puro con gradientes y diseno responsive
 - Font Awesome 6 (iconos)
 - Poppins (Google Fonts)
+- Transiciones CSS con `TransitionGroup`
 
-### Backend
+### Backend (C#)
 - **ASP.NET Core 10.0** (Web API)
 - **Entity Framework Core 10.0** (ORM)
 - **SQL Server** (base de datos)
 - **JWT Bearer** (autenticacion)
 - **BCrypt.Net** (hashing de contrasenas)
+- **MailKit** (envio de correos SMTP via Gmail)
 
 ---
 
 ## API Endpoints
 
 ### Auth
-| Metodo | Ruta                  | Descripcion            | Auth  |
-|--------|-----------------------|------------------------|-------|
-| POST   | `/api/auth/register`  | Registro de cliente    | No    |
-| POST   | `/api/auth/login`     | Inicio de sesion       | No    |
-| GET    | `/api/auth/me`        | Usuario actual         | Si    |
-| PUT    | `/api/auth/perfil`    | Actualizar perfil      | Si    |
-| PUT    | `/api/auth/password`  | Cambiar contrasena     | Si    |
+| Metodo | Ruta                          | Descripcion                  | Auth  |
+|--------|-------------------------------|------------------------------|-------|
+| POST   | `/api/auth/register`          | Registro de cliente          | No    |
+| POST   | `/api/auth/login`             | Inicio de sesion             | No    |
+| POST   | `/api/auth/verificar`         | Verificar email con token    | No    |
+| POST   | `/api/auth/reenviar-verificacion` | Reenviar token verificacion | No    |
+| GET    | `/api/auth/me`                | Usuario actual               | Si    |
+| PUT    | `/api/auth/perfil`            | Actualizar perfil            | Si    |
+| PUT    | `/api/auth/password`          | Cambiar contrasena           | Si    |
+| PUT    | `/api/auth/ubicacion`         | Actualizar ubicacion         | Si    |
 
 ### Productos
 | Metodo | Ruta                          | Descripcion               | Auth  |
@@ -200,42 +263,48 @@ proyecto-vue/
 | GET    | `/api/ventas`             | Todas las ventas              | Admin |
 | GET    | `/api/ventas/mis-compras` | Compras del usuario actual    | Si    |
 | GET    | `/api/ventas/{id}`        | Detalle de venta              | Si    |
+| PATCH  | `/api/ventas/{id}/estado` | Actualizar estado de venta    | Admin |
 | DELETE | `/api/ventas/{id}`        | Eliminar venta + restaurar stock | Admin |
+
+### Mail
+| Metodo | Ruta                  | Descripcion                  | Auth  |
+|--------|-----------------------|------------------------------|-------|
+| POST   | `/api/mail/send`      | Enviar correo SMTP           | No    |
+
+### Config
+| Metodo | Ruta                  | Descripcion                  | Auth  |
+|--------|-----------------------|------------------------------|-------|
+| GET    | `/api/config/empresa` | Obtener configuracion        | No    |
+| PUT    | `/api/config/empresa` | Actualizar latitud/longitud  | Admin |
 
 ---
 
-## Como levantar el proyecto (paso a paso)
+## Como levantar el proyecto
 
 ### Requisitos previos
 - [.NET 10.0 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - [Node.js 22+](https://nodejs.org/)
-- [SQL Server](https://www.microsoft.com/es-es/sql-server/sql-server-downloads) (local o Docker)
+- [SQL Server](https://www.microsoft.com/es-es/sql-server/sql-server-downloads)
 
-### Paso 1: Crear la base de datos
+### Paso 1: Base de datos
 
-Abre **SQL Server Management Studio** (o tu herramienta favorita) y ejecuta el archivo:
+Al ejecutar el backend por primera vez, `EnsureCreatedAsync()` crea la base de datos automaticamente con el esquema actual y datos semilla (admin, categorias, productos).
 
-```
-BackendApi/script.sql
-```
+Si prefieres crearla manualmente, ejecuta `BackendApi/script.sql` en SQL Server Management Studio.
 
-Esto creara la base de datos `HeladeriaDb` con las tablas y datos iniciales (categorias y productos).
+### Paso 2: Configurar conexion
 
-### Paso 2: Configurar la conexion
-
-Edita `BackendApi/appsettings.json` y ajusta la cadena de conexion si es necesario:
+Edita `BackendApi/appsettings.json` con tu cadena de conexion:
 
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=.;Database=HeladeriaDb;Trusted_Connection=True;..."
+    "DefaultConnection": "Server=.;Database=HeladeriaDb;Trusted_Connection=True;TrustServerCertificate=True;MultipleActiveResultSets=True"
   }
 }
 ```
 
-> Si usas autenticacion SQL Server, cambia `Trusted_Connection=True` por `User Id=sa;Password=tu_password;`.
-
-### Paso 3: Ejecutar el backend
+### Paso 3: Ejecutar backend
 
 ```sh
 cd BackendApi
@@ -243,45 +312,54 @@ dotnet restore
 dotnet run
 ```
 
-El backend estara disponible en:
-- **API**: `http://localhost:5057`
+API disponible en: `http://localhost:5057`
 
-> Al iniciar por primera vez, el seeder creara el usuario admin automaticamente.
-
-### Paso 4: Ejecutar el frontend
-
-En otra terminal:
+### Paso 4: Ejecutar frontend
 
 ```sh
-# Instalar dependencias (solo la primera vez)
 npm install
-
-# Ejecutar en desarrollo
 npm run dev
 ```
 
-El frontend estara disponible en: `http://localhost:5173`
-
-> El frontend esta configurado con un proxy en `vite.config.ts` que redirige las llamadas `/api/*` al backend en el puerto 5057.
+Frontend disponible en: `http://localhost:5173`
 
 ### Paso 5: Usar la aplicacion
 
-1. Abre `http://localhost:5173` en tu navegador
-2. Explora los productos en la pagina de inicio
-3. Crea una cuenta o inicia sesion con `admin@heladeria.com` / `admin123`
-4. Si inicias sesion como admin, seras redirigido al panel de administracion
-5. Si te registras como cliente, podras agregar productos al carrito y comprar
+1. Abre `http://localhost:5173`
+2. Explora productos en la pagina de inicio
+3. Inicia sesion con `admin@heladeria.com` / `admin123` o crea una cuenta
+4. Como admin accede al panel de control, gestion de productos, usuarios, despacho
+5. Como cliente agrega productos al carrito y realiza una compra
+
+### Configuracion de correo (SMTP Gmail)
+
+El backend usa MailKit con Gmail SMTP. Las credenciales estan en `appsettings.json`:
+
+```json
+"Smtp": {
+  "Host": "smtp.gmail.com",
+  "Port": 587,
+  "User": "tu-correo@gmail.com",
+  "Pass": "tu-app-password",
+  "FromEmail": "tu-correo@gmail.com",
+  "FromName": "La Dolce Vita"
+}
+```
+
+Para Gmail necesitas una [contraseña de aplicacion](https://support.google.com/accounts/answer/185833).
 
 ---
 
 ## Notas
 
-- Las contrasenas se almacenan hasheadas con BCrypt (nunca en texto plano).
-- Los tokens JWT expiran en 8 horas por defecto (configurable en `appsettings.json`).
-- El carrito se persiste en `localStorage` del navegador.
-- Las ventas en la base de datos incluyen historial completo y detalle de productos.
-- Las notificaciones son flotantes (toast) y no desplazan elementos de la UI.
+- Las contrasenas se almacenan hasheadas con BCrypt.
+- Los tokens JWT expiran en 8 horas (configurable en `appsettings.json`).
+- El carrito se persiste en `localStorage`.
+- Las ventas incluyen historial completo, detalle de productos y ubicacion de entrega.
 - El stock se actualiza automaticamente al realizar una venta y se restaura al eliminarla.
+- Los mapas Leaflet cargan tiles de OpenStreetMap via CDN.
+- La verificacion de email usa un token unico almacenado en la base de datos.
+- El estado de cada venta (`pendiente`, `confirmado`, `despachado`, `entregado`, `cancelado`) se gestiona desde el panel de despacho.
 
 ---
 

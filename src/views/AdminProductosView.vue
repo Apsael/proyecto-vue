@@ -12,8 +12,8 @@ const showAddModal = ref(false)
 const showEditModal = ref(false)
 const loading = ref(true)
 
-const form = ref({ nombre: '', descripcion: '', precio: 0, stock: 0, idCategoria: 0 })
-const editForm = ref({ id: 0, nombre: '', descripcion: '', precio: 0, stock: 0, idCategoria: 0 })
+const form = ref({ nombre: '', descripcion: '', precio: 0, stock: 0, idCategoria: 0, imagenUrl: '' })
+const editForm = ref({ id: 0, nombre: '', descripcion: '', precio: 0, stock: 0, idCategoria: 0, imagenUrl: '' })
 
 onMounted(async () => {
   try {
@@ -29,7 +29,7 @@ const productos = computed(() => store.getAllProductos())
 const categorias = computed(() => store.getCategorias())
 
 function getCategoriaNombre(id: number): string {
-  return categorias.value.find(c => c.id === id)?.nombre ?? 'Sin categoria'
+  return categorias.value.find(c => c.id === id)?.nombre ?? 'Sin categoría'
 }
 
 async function handleAdd() {
@@ -38,9 +38,17 @@ async function handleAdd() {
     return
   }
   try {
-    await api.productos.create(form.value)
+    const data: any = {
+      nombre: form.value.nombre,
+      descripcion: form.value.descripcion,
+      precio: form.value.precio,
+      stock: form.value.stock,
+      idCategoria: form.value.idCategoria,
+    }
+    if (form.value.imagenUrl) data.imagenUrl = form.value.imagenUrl
+    await api.productos.create(data)
     await store.loadAllProductos()
-    form.value = { nombre: '', descripcion: '', precio: 0, stock: 0, idCategoria: 0 }
+    form.value = { nombre: '', descripcion: '', precio: 0, stock: 0, idCategoria: 0, imagenUrl: '' }
     showAddModal.value = false
     toast.success('Producto agregado correctamente')
   } catch (e: any) {
@@ -49,7 +57,7 @@ async function handleAdd() {
 }
 
 function openEdit(p: any) {
-  editForm.value = { ...p, idCategoria: p.idCategoria }
+  editForm.value = { ...p, idCategoria: p.idCategoria, imagenUrl: p.imagenUrl || '' }
   showEditModal.value = true
 }
 
@@ -59,13 +67,15 @@ async function handleEdit() {
     return
   }
   try {
-    await api.productos.update(editForm.value.id, {
+    const data: any = {
       nombre: editForm.value.nombre,
       descripcion: editForm.value.descripcion,
       precio: editForm.value.precio,
       stock: editForm.value.stock,
       idCategoria: editForm.value.idCategoria,
-    })
+    }
+    if (editForm.value.imagenUrl) data.imagenUrl = editForm.value.imagenUrl
+    await api.productos.update(editForm.value.id, data)
     await store.loadAllProductos()
     showEditModal.value = false
     toast.success('Producto actualizado correctamente')
@@ -75,7 +85,7 @@ async function handleEdit() {
 }
 
 async function handleDelete(id: number) {
-  if (!confirm('Eliminar este producto?')) return
+  if (!confirm('¿Eliminar este producto?')) return
   try {
     await api.productos.delete(id)
     await store.loadAllProductos()
@@ -84,12 +94,17 @@ async function handleDelete(id: number) {
     toast.error(e.message || 'Error al eliminar producto')
   }
 }
+
+function getImageUrl(p: any): string {
+  if (p.imagenUrl) return p.imagenUrl
+  return ''
+}
 </script>
 
 <template>
   <div class="container">
     <div class="page-header">
-      <h1><i class="fas fa-boxes-stacked"></i> Catalogo de Productos</h1>
+      <h1><i class="fas fa-boxes-stacked"></i> Catálogo de Productos</h1>
       <button class="btn-primary" @click="showAddModal = true">
         <i class="fas fa-plus"></i> Nuevo Producto
       </button>
@@ -101,12 +116,18 @@ async function handleDelete(id: number) {
       <table>
         <thead>
           <tr>
-            <th>ID</th><th>Nombre</th><th>Descripcion</th><th>Precio</th><th>Stock</th><th>Categoria</th><th>Acciones</th>
+            <th>ID</th><th>Imagen</th><th>Nombre</th><th>Descripción</th><th>Precio</th><th>Stock</th><th>Categoría</th><th>Acciones</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="p in productos" :key="p.id">
             <td>{{ p.id }}</td>
+            <td>
+              <div class="product-thumb">
+                <img v-if="p.imagenUrl" :src="p.imagenUrl" :alt="p.nombre" class="thumb-img" />
+                <i v-else class="fas fa-ice-cream"></i>
+              </div>
+            </td>
             <td><strong>{{ p.nombre }}</strong></td>
             <td>{{ p.descripcion }}</td>
             <td class="price">${{ p.precio.toFixed(2) }}</td>
@@ -131,12 +152,13 @@ async function handleDelete(id: number) {
   <Modal :visible="showAddModal" title="Agregar Producto" @close="showAddModal = false">
     <form @submit.prevent="handleAdd">
       <div class="form-group"><label>Nombre *</label><input type="text" v-model="form.nombre" placeholder="Ej: Helado de Vainilla" required /></div>
-      <div class="form-group"><label>Descripcion</label><textarea v-model="form.descripcion" placeholder="Descripcion del producto..."></textarea></div>
+      <div class="form-group"><label>Descripción</label><textarea v-model="form.descripcion" placeholder="Descripción del producto..."></textarea></div>
+      <div class="form-group"><label>URL de Imagen</label><input type="url" v-model="form.imagenUrl" placeholder="https://ejemplo.com/imagen.jpg" /></div>
       <div class="form-row">
         <div class="form-group"><label>Precio *</label><input type="number" step="0.01" v-model.number="form.precio" placeholder="0.00" min="0.01" required /></div>
         <div class="form-group"><label>Stock</label><input type="number" v-model.number="form.stock" min="0" /></div>
       </div>
-      <div class="form-group"><label>Categoria</label>
+      <div class="form-group"><label>Categoría</label>
         <select v-model.number="form.idCategoria">
           <option :value="0">-- Seleccionar --</option>
           <option v-for="c in categorias" :key="c.id" :value="c.id">{{ c.nombre }}</option>
@@ -152,12 +174,13 @@ async function handleDelete(id: number) {
   <Modal :visible="showEditModal" title="Editar Producto" @close="showEditModal = false">
     <form @submit.prevent="handleEdit">
       <div class="form-group"><label>Nombre *</label><input type="text" v-model="editForm.nombre" required /></div>
-      <div class="form-group"><label>Descripcion</label><textarea v-model="editForm.descripcion"></textarea></div>
+      <div class="form-group"><label>Descripción</label><textarea v-model="editForm.descripcion"></textarea></div>
+      <div class="form-group"><label>URL de Imagen</label><input type="url" v-model="editForm.imagenUrl" placeholder="https://ejemplo.com/imagen.jpg" /></div>
       <div class="form-row">
         <div class="form-group"><label>Precio *</label><input type="number" step="0.01" v-model.number="editForm.precio" min="0.01" required /></div>
         <div class="form-group"><label>Stock</label><input type="number" v-model.number="editForm.stock" min="0" /></div>
       </div>
-      <div class="form-group"><label>Categoria</label>
+      <div class="form-group"><label>Categoría</label>
         <select v-model.number="editForm.idCategoria">
           <option :value="0">-- Seleccionar --</option>
           <option v-for="c in categorias" :key="c.id" :value="c.id">{{ c.nombre }}</option>
@@ -172,7 +195,7 @@ async function handleDelete(id: number) {
 </template>
 
 <style scoped>
-.container { max-width: 1100px; margin: 30px auto; padding: 0 20px; }
+.container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
 .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
 .page-header h1 { font-size: 26px; color: #333; }
 
@@ -189,8 +212,11 @@ async function handleDelete(id: number) {
 .table-container { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06); }
 table { width: 100%; border-collapse: collapse; }
 thead th { background: #fafafa; padding: 14px 18px; text-align: left; font-size: 13px; font-weight: 600; color: #555; border-bottom: 2px solid #f0f0f0; }
-tbody td { padding: 14px 18px; font-size: 14px; color: #444; border-bottom: 1px solid #f5f5f5; }
+tbody td { padding: 12px 18px; font-size: 14px; color: #444; border-bottom: 1px solid #f5f5f5; }
 tbody tr:hover { background: #fdf2f8; }
+
+.product-thumb { width: 50px; height: 50px; border-radius: 10px; overflow: hidden; display: flex; align-items: center; justify-content: center; background: #fce4ec; color: #e91e63; font-size: 20px; }
+.thumb-img { width: 100%; height: 100%; object-fit: cover; }
 
 .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
 .badge-cat { background: #ede7f6; color: #673ab7; }
